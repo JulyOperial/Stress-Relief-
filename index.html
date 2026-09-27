@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  />
+  <meta name="theme-color" content="#090b10" />
+  <title>The 60-Second Offload</title>
+
+  <style>
+    :root {
+      --bg: #090b10;
+      --bg-soft: #10141c;
+      --card: rgba(20, 25, 34, 0.88);
+      --text: #f2f1ed;
+      --muted: #969daa;
+      --accent: #9bb8a5;
+      --accent-bright: #bdd5c5;
+      --line: rgba(255, 255, 255, 0.09);
+      --shadow: rgba(0, 0, 0, 0.4);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--bg);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      background:
+        radial-gradient(circle at 50% 15%, rgba(103, 132, 116, 0.13), transparent 34%),
+        radial-gradient(circle at 10% 90%, rgba(70, 82, 106, 0.08), transparent 35%),
+        var(--bg);
+      color: var(--text);
+      font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        Helvetica, Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      overflow-x: hidden;
+    }
+
+    button,
+    textarea {
+      font: inherit;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 560px;
+      min-height: 100dvh;
+      padding:
+        max(28px, env(safe-area-inset-top))
+        20px
+        max(28px, env(safe-area-inset-bottom));
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    header {
+      text-align: center;
+      padding-top: 10px;
+      margin-bottom: 26px;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      font-size: 0.68rem;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 9vw, 3rem);
+      line-height: 1;
+      font-weight: 500;
+      letter-spacing: -0.045em;
+    }
+
+    .subtitle {
+      max-width: 390px;
+      margin: 14px auto 0;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 0.95rem;
+    }
+
+    .offload-card {
+      position: relative;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      padding: 16px;
+      box-shadow:
+        0 24px 70px var(--shadow),
+        inset 0 1px 0 rgba(255,255,255,0.025);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    .textarea-wrap {
+      position: relative;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 190px;
+      resize: none;
+      border: 0;
+      outline: none;
+      border-radius: 18px;
+      padding: 18px;
+      background: rgba(5, 7, 11, 0.58);
+      color: var(--text);
+      caret-color: var(--accent-bright);
+      line-height: 1.6;
+      font-size: 1rem;
+      transition: background 0.25s ease, opacity 0.4s ease;
+    }
+
+    textarea::placeholder {
+      color: #6f7580;
+    }
+
+    textarea:focus {
+      background: rgba(5, 7, 11, 0.76);
+    }
+
+    .counter {
+      position: absolute;
+      right: 14px;
+      bottom: 11px;
+      color: #5e6570;
+      font-size: 0.68rem;
+      pointer-events: none;
+    }
+
+    .release-btn {
+      width: 100%;
+      margin-top: 12px;
+      min-height: 58px;
+      border: 0;
+      border-radius: 17px;
+      background: var(--accent);
+      color: #0b100d;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      box-shadow: 0 8px 28px rgba(155, 184, 165, 0.13);
+      transition:
+        transform 0.18s ease,
+        background 0.18s ease,
+        opacity 0.18s ease;
+    }
+
+    .release-btn:active {
+      transform: scale(0.98);
+    }
+
+    .release-btn:hover {
+      background: var(--accent-bright);
+    }
+
+    .release-btn:disabled {
+      cursor: default;
+      opacity: 0.55;
+    }
+
+    .message {
+      min-height: 25px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-top: 14px;
+      transition: opacity 0.4s ease;
+    }
+
+    /* Particle layer */
+    #particles {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    /* Breathing section */
+    .breathing {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      min-height: 360px;
+      text-align: center;
+      animation: appear 0.8s ease both;
+    }
+
+    .breathing.active {
+      display: flex;
+    }
+
+    .breath-label {
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      color: var(--accent);
+      font-size: 0.7rem;
+      margin-bottom: 32px;
+    }
+
+    .breath-circle {
+      width: min(54vw, 190px);
+      height: min(54vw, 190px);
+      border-radius: 50%;
+      border: 1px solid rgba(189, 213, 197, 0.32);
+      background:
+        radial-gradient(
+          circle,
+          rgba(155, 184, 165, 0.14),
+          rgba(155, 184, 165, 0.035) 58%,
+          transparent 60%
+        );
+      box-shadow:
+        0 0 70px rgba(155, 184, 165, 0.08),
+        inset 0 0 35px rgba(155, 184, 165, 0.04);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: scale(0.72);
+    }
+
+    .breathing.active .breath-circle {
+      animation: breathe 8s ease-in-out infinite;
+    }
+
+    .breath-word {
+      color: #dfe5e0;
+      font-size: 1rem;
+      letter-spacing: 0.05em;
+    }
+
+    .breath-instruction {
+      margin-top: 30px;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .timer {
+      margin-top: 9px;
+      color: #676e78;
+      font-variant-numeric: tabular-nums;
+      font-size: 0.72rem;
+    }
+
+    .reset-btn {
+      margin-top: 28px;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: #a7adb6;
+      padding: 11px 19px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    .reset-btn:active {
+      transform: scale(0.97);
+    }
+
+    .footer {
+      text-align: center;
+      color: #555b65;
+      font-size: 0.68rem;
+      line-height: 1.5;
+      margin-top: auto;
+      padding-top: 24px;
+    }
+
+    /* Text dissolving */
+    .dissolve {
+      animation: dissolve 1.15s ease forwards;
+    }
+
+    @keyframes dissolve {
+      0% {
+        opacity: 1;
+        filter: blur(0);
+        transform: translateY(0);
+      }
+      45% {
+        opacity: 0.55;
+        filter: blur(1px);
+        transform: translateY(-2px);
+      }
+      100% {
+        opacity: 0;
+        filter: blur(9px);
+        transform: translateY(-9px);
+      }
+    }
+
+    @keyframes breathe {
+      0%, 100% {
+        transform: scale(0.72);
+      }
+      50% {
+        transform: scale(1);
+      }
+    }
+
+    @keyframes appear {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    @media (min-width: 600px) {
+      .app {
+        padding-left: 28px;
+        padding-right: 28px;
+      }
+
+      .offload-card {
+        padding: 20px;
+      }
+
+      textarea {
+        min-height: 220px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="particles"></canvas>
+
+  <main class="app">
+    <header id="header">
+      <div class="eyebrow">A tiny place to put it down</div>
+      <h1>The 60-Second Offload</h1>
+      <p class="subtitle">
+        You don't have to solve the thought. Just get it out of your head.
+      </p>
+    </header>
+
+    <section class="offload-card" id="offloadCard">
+      <div class="textarea-wrap">
+        <textarea
+          id="thought"
+          maxlength="1000"
+          aria-label="Write down what's stressing you"
+          placeholder="Write the thing you're carrying right now..."
+          spellcheck="true"
+        ></textarea>
+        <span class="counter" id="counter">0 / 1000</span>
+      </div>
+
+      <button class="release-btn" id="releaseBtn">
+        Release
+      </button>
+
+      <div class="message" id="message" aria-live="polite"></div>
+    </section>
+
+    <section class="breathing" id="breathing" aria-live="polite">
+      <div class="breath-label">Now, just breathe</div>
+
+      <div class="breath-circle">
+        <span class="breath-word" id="breathWord">Breathe in</span>
+      </div>
+
+      <div class="breath-instruction">
+        Follow the circle. Nothing else is required.
+      </div>
+
+      <div class="timer" id="timer">0:08</div>
+
+      <button class="reset-btn" id="resetBtn">
+        Let another thought go
+      </button>
+    </section>
+
+    <div class="footer">
+      Your thoughts stay on this device and are never sent anywhere.
+    </div>
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const thought = document.getElementById("thought");
+      const releaseBtn = document.getElementById("releaseBtn");
+      const resetBtn = document.getElementById("resetBtn");
+      const counter = document.getElementById("counter");
+      const message = document.getElementById("message");
+      const offloadCard = document.getElementById("offloadCard");
+      const breathing = document.getElementById("breathing");
+      const breathWord = document.getElementById("breathWord");
+      const timer = document.getElementById("timer");
+      const canvas = document.getElementById("particles");
+      const ctx = canvas.getContext("2d");
+
+      let particles = [];
+      let animationFrame;
+      let breathInterval;
+      let breathTimeout;
+
+      const BREATH_DURATION = 8000;
+
+      function updateCounter() {
+        counter.textContent = `${thought.value.length} / 1000`;
+      }
+
+      thought.addEventListener("input", updateCounter);
+
+      function resizeCanvas() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+        canvas.width = window.innerWidth * dpr;
+        canvas.height = window.innerHeight * dpr;
+        canvas.style.width = window.innerWidth + "px";
+        canvas.style.height = window.innerHeight + "px";
+
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      window.addEventListener("resize", resizeCanvas);
+      resizeCanvas();
+
+      function createParticles() {
+        particles = [];
+
+        const rect = thought.getBoundingClientRect();
+        const text = thought.value.trim();
+
+        // More particles for longer thoughts, with sensible mobile limits.
+        const count = Math.min(
+          180,
+          Math.max(55, Math.floor(text.length * 0.22))
+        );
+
+        for (let i = 0; i < count; i++) {
+          particles.push({
+            x: rect.left + Math.random() * rect.width,
+            y: rect.top + Math.random() * rect.height,
+            vx: (Math.random() - 0.5) * 1.5,
+            vy: -Math.random() * 1.8 - 0.15,
+            size: Math.random() * 2.2 + 0.5,
+            life: 1,
+            decay: Math.random() * 0.018 + 0.008,
+            drift: (Math.random() - 0.5) * 0.025
+          });
+        }
+
+        animateParticles();
+      }
+
+      function animateParticles() {
+        cancelAnimationFrame(animationFrame);
+
+        const draw = () => {
+          ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+          let alive = false;
+
+          for (const p of particles) {
+            if (p.life <= 0) continue;
+
+            alive = true;
+
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vx += p.drift;
+            p.vy -= 0.003;
+            p.life -= p.decay;
+
+            ctx.globalAlpha = Math.max(0, p.life * 0.65);
+            ctx.fillStyle = "#b8cdbd";
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          ctx.globalAlpha = 1;
+
+          if (alive) {
+            animationFrame = requestAnimationFrame(draw);
+          } else {
+            ctx.clearRect(
+              0,
+              0,
+              window.innerWidth,
+              window.innerHeight
+            );
+          }
+        };
+
+        draw();
+      }
+
+      function formatTime(seconds) {
+        return `0:${String(seconds).padStart(2, "0")}`;
+      }
+
+      function startBreathing() {
+        breathing.classList.add("active");
+
+        let remaining = 8;
+
+        timer.textContent = formatTime(remaining);
+        breathWord.textContent = "Breathe in";
+
+        // The CSS animation itself controls the circle.
+        // This interval keeps the text synchronized with the 8-second cycle.
+        breathInterval = setInterval(() => {
+          remaining--;
+
+          if (remaining <= 0) {
+            remaining = 8;
+          }
+
+          timer.textContent = formatTime(remaining);
+
+          if (remaining > 4) {
+            breathWord.textContent = "Breathe in";
+          } else {
+            breathWord.textContent = "Breathe out";
+          }
+        }, 1000);
+
+        breathTimeout = setTimeout(() => {
+          clearInterval(breathInterval);
+          breathWord.textContent = "Easy does it";
+          timer.textContent = "0:00";
+        }, BREATH_DURATION);
+      }
+
+      function releaseThought() {
+        const text = thought.value.trim();
+
+        if (!text) {
+          message.textContent = "Put the thought here first. It can be messy.";
+          thought.focus();
+
+          setTimeout(() => {
+            message.textContent = "";
+          }, 2600);
+
+          return;
+        }
+
+        releaseBtn.disabled = true;
+        thought.disabled = true;
+
+        createParticles();
+
+        thought.classList.add("dissolve");
+        message.textContent = "Letting it go...";
+
+        setTimeout(() => {
+          offloadCard.style.display = "none";
+          document.getElementById("header").style.display = "none";
+          startBreathing();
+        }, 900);
+      }
+
+      function resetApp() {
+        clearInterval(breathInterval);
+        clearTimeout(breathTimeout);
+
+        breathing.classList.remove("active");
+
+        thought.value = "";
+        thought.disabled = false;
+        thought.classList.remove("dissolve");
+
+        releaseBtn.disabled = false;
+        message.textContent = "";
+        counter.textContent = "0 / 1000";
+
+        offloadCard.style.display = "";
+        document.getElementById("header").style.display = "";
+
+        breathWord.textContent = "Breathe in";
+        timer.textContent = "0:08";
+
+        ctx.clearRect(
+          0,
+          0,
+          window.innerWidth,
+          window.innerHeight
+        );
+
+        setTimeout(() => thought.focus(), 100);
+      }
+
+      releaseBtn.addEventListener("click", releaseThought);
+      resetBtn.addEventListener("click", resetApp);
+
+      // Ctrl/Cmd + Enter releases the thought on larger devices.
+      thought.addEventListener("keydown", (event) => {
+        if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+          event.preventDefault();
+          releaseThought();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
